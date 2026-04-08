@@ -10,10 +10,14 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Checkout
+      - name: Checkout FULL repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      - name: Fix git safe directory
+        run: |
+          git config --global --add safe.directory /github/workspace
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -41,8 +45,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install buildozer cython
 
+      - name: Verify files
+        run: |
+          cd /github/workspace
+          ls
+
+      - name: Clean build
+        run: |
+          cd /github/workspace
+          buildozer android clean
+
       - name: Build APK
         run: |
+          cd /github/workspace
           buildozer android debug
 
       - name: Upload APK
