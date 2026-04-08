@@ -15,16 +15,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Fix git safe directory
+      - name: Fix git config
         run: |
-          git config --global --add safe.directory /github/workspace
+          git config --global user.email "you@example.com"
+          git config --global user.name "github-actions"
+          git config --global --add safe.directory $GITHUB_WORKSPACE
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install system dependencies
+      - name: Install dependencies
         run: |
           sudo apt update
           sudo apt install -y \
@@ -47,17 +49,14 @@ jobs:
 
       - name: Verify files
         run: |
-          cd /github/workspace
           ls
 
       - name: Clean build
         run: |
-          cd /github/workspace
           buildozer android clean
 
       - name: Build APK
         run: |
-          cd /github/workspace
           buildozer android debug
 
       - name: Upload APK
