@@ -41,32 +41,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install buildozer cython
 
-      - name: Locate buildozer.spec
-        id: locate_spec
-        run: |
-          echo "🔍 Buscando buildozer.spec..."
-          SPEC_PATH=$(find . -name "buildozer.spec" | head -n 1)
-
-          if [ -z "$SPEC_PATH" ]; then
-            echo "❌ No se encontró buildozer.spec"
-            exit 1
-          fi
-
-          DIR_PATH=$(dirname "$SPEC_PATH")
-
-          echo "📂 Encontrado en: $DIR_PATH"
-          echo "spec_dir=$DIR_PATH" >> $GITHUB_OUTPUT
-
-      - name: Show structure
+      - name: Verify structure
         run: |
           pwd
           ls -la
-          echo "📂 Carpeta detectada:"
-          echo "${{ steps.locate_spec.outputs.spec_dir }}"
-          ls -la "${{ steps.locate_spec.outputs.spec_dir }}"
 
       - name: Build APK
-        working-directory: ${{ steps.locate_spec.outputs.spec_dir }}
         run: |
           buildozer android clean
           buildozer android debug
@@ -75,4 +55,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-gallinas-apk
-          path: ${{ steps.locate_spec.outputs.spec_dir }}/bin/*.apk
+          path: bin/*.apk
