@@ -19,7 +19,7 @@ jobs:
         run: |
           git config --global user.email "you@example.com"
           git config --global user.name "github-actions"
-          git config --global --add safe.directory $GITHUB_WORKSPACE
+          git config --global --add safe.directory ${{ github.workspace }}
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -48,14 +48,17 @@ jobs:
           pip install buildozer cython
 
       - name: Verify files
+        working-directory: ${{ github.workspace }}
         run: |
           ls
 
       - name: Clean build
+        working-directory: ${{ github.workspace }}
         run: |
           buildozer android clean
 
       - name: Build APK
+        working-directory: ${{ github.workspace }}
         run: |
           buildozer android debug
 
