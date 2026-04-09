@@ -1,6 +1,11 @@
+from kivy.config import Config
+Config.set('graphics', 'width', '400')
+Config.set('graphics', 'height', '700')
+
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
+from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
@@ -10,24 +15,44 @@ from kivy.uix.spinner import Spinner
 class GallinasApp(App):
 
     def build(self):
-        root = BoxLayout(orientation='vertical', padding=20, spacing=15)
+        root = BoxLayout(orientation='vertical')
+
+        # 🔹 SCROLL PRINCIPAL
+        scroll = ScrollView(size_hint=(1, 1))
+
+        content = BoxLayout(
+            orientation='vertical',
+            padding=20,
+            spacing=15,
+            size_hint_y=None
+        )
+        content.bind(minimum_height=content.setter('height'))
 
         # 🔹 FORMULARIO
-        grid = GridLayout(cols=2, spacing=12, size_hint_y=None)
+        grid = GridLayout(
+            cols=2,
+            spacing=12,
+            size_hint_y=None
+        )
         grid.bind(minimum_height=grid.setter('height'))
 
         def fila(texto, widget):
-            label = Label(text=texto, size_hint_x=0.6, halign="left")
+            label = Label(
+                text=texto,
+                size_hint_x=0.6,
+                halign="left",
+                valign="middle"
+            )
             label.bind(size=label.setter('text_size'))
 
             widget.size_hint_x = 0.4
             widget.size_hint_y = None
-            widget.height = 42
+            widget.height = 50
 
             grid.add_widget(label)
             grid.add_widget(widget)
 
-        # Entradas
+        # 🔹 ENTRADAS
         self.gallinas = TextInput(input_filter="int")
         fila("Número de gallinas", self.gallinas)
 
@@ -50,30 +75,38 @@ class GallinasApp(App):
             text="Media",
             values=("Alta producción", "Media", "Baja"),
             size_hint_y=None,
-            height=42
+            height=50
         )
         fila("Tipo de gallina", self.tipo)
 
         self.dias = TextInput(input_filter="int")
         fila("Días (máx 365)", self.dias)
 
-        root.add_widget(grid)
+        content.add_widget(grid)
 
         # 🔘 BOTÓN
-        self.btn = Button(text="Calcular", size_hint_y=None, height=60)
+        self.btn = Button(
+            text="Calcular",
+            size_hint_y=None,
+            height=60
+        )
         self.btn.bind(on_press=self.calcular)
-        root.add_widget(self.btn)
+        content.add_widget(self.btn)
 
         # 📊 RESULTADO
         self.resultado = Label(
             text="",
-            size_hint_y=1,
+            size_hint_y=None,
+            height=200,
             halign="left",
             valign="top"
         )
         self.resultado.bind(size=self.resultado.setter('text_size'))
 
-        root.add_widget(self.resultado)
+        content.add_widget(self.resultado)
+
+        scroll.add_widget(content)
+        root.add_widget(scroll)
 
         return root
 
@@ -122,11 +155,10 @@ class GallinasApp(App):
             alimento_total = round((alimento * gallinas * dias) / 1000, 2)
             agua_total = round((agua * gallinas * dias) / 1000, 2)
 
-            # 🔹 Economía (sin decimales)
+            # 🔹 Economía
             costo_alimento = int(alimento_total * precio_alimento)
             ingreso_total_huevos = int(total_huevos * precio_huevo)
 
-            # Resultado limpio
             self.resultado.text = (
                 f"Huevos por día: {huevos_dia}\n"
                 f"Huevos totales: {total_huevos}\n"
@@ -141,5 +173,5 @@ class GallinasApp(App):
 
 
 if __name__ == "__main__":
+    print("Iniciando app...")
     GallinasApp().run()
-    # prueba
