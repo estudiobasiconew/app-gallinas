@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
+      - name: Install system dependencies
         run: |
           sudo apt update
           sudo apt install -y \
@@ -29,17 +29,15 @@ jobs:
             unzip \
             openjdk-17-jdk \
             libffi-dev \
-            libssl-dev
+            libssl-dev \
+            libltdl-dev
 
-      - name: Install Buildozer
+      - name: Install Buildozer + python-for-android
         run: |
           pip install --upgrade pip
-          pip install buildozer cython
-
-      - name: Verify files
-        run: |
-          pwd
-          ls -la
+          pip install cython==0.29.36
+          pip install buildozer
+          pip install python-for-android
 
       - name: Build APK
         run: |
