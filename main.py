@@ -1,7 +1,3 @@
-from kivy.config import Config
-Config.set('graphics', 'width', '400')
-Config.set('graphics', 'height', '700')
-
 from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
@@ -10,6 +6,7 @@ from kivy.uix.label import Label
 from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.uix.spinner import Spinner
+from kivy.metrics import dp
 
 
 class GallinasApp(App):
@@ -17,13 +14,13 @@ class GallinasApp(App):
     def build(self):
         root = BoxLayout(orientation='vertical')
 
-        # 🔹 SCROLL PRINCIPAL
-        scroll = ScrollView(size_hint=(1, 1))
+        # 🔹 SCROLL GENERAL (para móviles)
+        scroll = ScrollView()
 
         content = BoxLayout(
             orientation='vertical',
-            padding=20,
-            spacing=15,
+            padding=dp(15),
+            spacing=dp(15),
             size_hint_y=None
         )
         content.bind(minimum_height=content.setter('height'))
@@ -31,7 +28,7 @@ class GallinasApp(App):
         # 🔹 FORMULARIO
         grid = GridLayout(
             cols=2,
-            spacing=12,
+            spacing=dp(10),
             size_hint_y=None
         )
         grid.bind(minimum_height=grid.setter('height'))
@@ -47,7 +44,7 @@ class GallinasApp(App):
 
             widget.size_hint_x = 0.4
             widget.size_hint_y = None
-            widget.height = 50
+            widget.height = dp(45)
 
             grid.add_widget(label)
             grid.add_widget(widget)
@@ -75,7 +72,9 @@ class GallinasApp(App):
             text="Media",
             values=("Alta producción", "Media", "Baja"),
             size_hint_y=None,
-            height=50
+            height=dp(45),
+            background_normal='',
+            background_color=(0.10, 0.60, 0.22, 1)
         )
         fila("Tipo de gallina", self.tipo)
 
@@ -84,11 +83,14 @@ class GallinasApp(App):
 
         content.add_widget(grid)
 
-        # 🔘 BOTÓN
+        # 🔘 BOTÓN VERDE
         self.btn = Button(
             text="Calcular",
             size_hint_y=None,
-            height=60
+            height=dp(60),
+            background_normal='',
+            background_color=(0.10, 0.60, 0.22, 1),
+            color=(1, 1, 1, 1)
         )
         self.btn.bind(on_press=self.calcular)
         content.add_widget(self.btn)
@@ -97,11 +99,14 @@ class GallinasApp(App):
         self.resultado = Label(
             text="",
             size_hint_y=None,
-            height=200,
+            height=dp(200),
             halign="left",
             valign="top"
         )
-        self.resultado.bind(size=self.resultado.setter('text_size'))
+        self.resultado.bind(
+            size=self.resultado.setter('text_size'),
+            texture_size=self.actualizar_altura
+        )
 
         content.add_widget(self.resultado)
 
@@ -109,6 +114,10 @@ class GallinasApp(App):
         root.add_widget(scroll)
 
         return root
+
+    # 🔥 Ajusta altura automática del resultado
+    def actualizar_altura(self, instance, size):
+        instance.height = size[1]
 
     def calcular(self, instance):
         try:
@@ -131,25 +140,41 @@ class GallinasApp(App):
 
             edad_semanas = edad_dias / 7
 
+            # 🔴 NUEVA LÓGICA (MENOS DE 18 SEMANAS)
             if edad_semanas < 18:
                 total_huevos = 0
                 huevos_dia = 0
+
+                alimento_total = round((alimento * gallinas * dias) / 1000, 2)
+                agua_total = round((agua * gallinas * dias) / 1000, 2)
+                costo_alimento = int(alimento_total * precio_alimento)
+
+                self.resultado.text = (
+                    f"Huevos por día: 0\n"
+                    f"Huevos totales: 0\n"
+                    f"⚠ Gallinas aún no producen (mínimo 18 semanas)\n\n"
+                    f"Alimento total: {alimento_total} kg\n"
+                    f"Costo alimento: ${costo_alimento}\n"
+                    f"Agua total: {agua_total} L"
+                )
+                return
+
+            # 🔹 PRODUCCIÓN NORMAL
+            if tipo == "Alta producción":
+                postura = 0.9
+            elif tipo == "Media":
+                postura = 0.75
             else:
-                if tipo == "Alta producción":
-                    postura = 0.9
-                elif tipo == "Media":
-                    postura = 0.75
-                else:
-                    postura = 0.6
+                postura = 0.6
 
-                total_huevos = 0
+            total_huevos = 0
 
-                for dia in range(dias):
-                    factor = max(0.7, 1 - (0.001 * dia))
-                    huevos = round(gallinas * postura * factor)
-                    total_huevos += huevos
+            for dia in range(dias):
+                factor = max(0.7, 1 - (0.001 * dia))
+                huevos = round(gallinas * postura * factor)
+                total_huevos += huevos
 
-                huevos_dia = round(total_huevos / dias)
+            huevos_dia = round(total_huevos / dias)
 
             # 🔹 Consumos
             alimento_total = round((alimento * gallinas * dias) / 1000, 2)
@@ -159,6 +184,7 @@ class GallinasApp(App):
             costo_alimento = int(alimento_total * precio_alimento)
             ingreso_total_huevos = int(total_huevos * precio_huevo)
 
+            # ✅ RESULTADO COMPLETO
             self.resultado.text = (
                 f"Huevos por día: {huevos_dia}\n"
                 f"Huevos totales: {total_huevos}\n"
@@ -173,5 +199,4 @@ class GallinasApp(App):
 
 
 if __name__ == "__main__":
-    print("Iniciando app...")
     GallinasApp().run()
